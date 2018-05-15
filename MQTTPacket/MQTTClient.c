@@ -33,6 +33,7 @@ static int getNextPacketId(MQTTClient *c) {
 
 static int sendPacket(MQTTClient* c, int length, Timer* timer)
 {
+	printf("enter %s\n", __func__);
     int rc = FAILURE,
         sent = 0;
 
@@ -50,6 +51,7 @@ static int sendPacket(MQTTClient* c, int length, Timer* timer)
     }
     else
         rc = FAILURE;
+	printf("leave %s\n", __func__);
     return rc;
 }
 
@@ -119,6 +121,7 @@ static int readPacket(MQTTClient* c, Timer* timer)
     if (rc != 1)
         goto exit;
 
+	printf("real recv something\n");
     len = 1;
     /* 2. read the remaining length.  This is variable in itself */
     decodePacket(c, &rem_len, TimerLeftMS(timer));
@@ -226,6 +229,7 @@ int keepalive(MQTTClient* c)
             TimerInit(&timer);
             TimerCountdownMS(&timer, 1000);
             int len = MQTTSerialize_pingreq(c->buf, c->buf_size);
+			printf("send keepalive\n");
             if (len > 0 && (rc = sendPacket(c, len, &timer)) == SUCCESS) // send the ping packet
                 c->ping_outstanding = 1;
         }
@@ -440,10 +444,14 @@ int MQTTConnectWithResults(MQTTClient* c, MQTTPacket_connectData* options, MQTTC
     // this will be a blocking call, wait for the connack
     if (waitfor(c, CONNACK, &connect_timer) == CONNACK)
     {
+		printf("waitfor is ok, connack\n");
         data->rc = 0;
         data->sessionPresent = 0;
-        if (MQTTDeserialize_connack(&data->sessionPresent, &data->rc, c->readbuf, c->readbuf_size) == 1)
+        if (MQTTDeserialize_connack(&data->sessionPresent, &data->rc,
+					c->readbuf, c->readbuf_size) == 1){			
             rc = data->rc;
+			printf("rc = %d\n", rc);
+		}
         else
             rc = FAILURE;
     }

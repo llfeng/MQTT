@@ -42,6 +42,7 @@
 
 */
 #include <stdio.h>
+#include <stdlib.h>
 #include <memory.h>
 #include "MQTTClient.h"
 
@@ -192,12 +193,24 @@ void messageArrived(MessageData* md)
 }
 
 
+#define MQTT_HOST 	"183.230.40.39"
+#define MQTT_PORT	6002
+#define DEVICE_ID	"29494460"
+//#define DEVICE_ID	"2956377"
+#define PRODUCT_ID		"129356"
+//#define PASSWORD	"{\"mqtt\":\"mqtt-1234\"}"
+#define PASSWORD	"ZxjP4ye8xSmewXnLELl2hR1aubw="
+//#define PASSWORD	"asdfgh"
+
+
+
 int main(int argc, char** argv)
 {
 	int rc = 0;
 	unsigned char buf[100];
 	unsigned char readbuf[100];
 	
+#if 0
 	if (argc < 2)
 		usage();
 	
@@ -207,8 +220,16 @@ int main(int argc, char** argv)
 		opts.showtopics = 1;
 	if (opts.showtopics)
 		printf("topic is %s\n", topic);
+#endif
 
-	getopts(argc, argv);	
+//	getopts(argc, argv);	
+	opts.host = strdup(MQTT_HOST);
+	opts.port = MQTT_PORT;
+
+	opts.clientid = strdup(DEVICE_ID);
+	opts.username = strdup(PRODUCT_ID);
+	opts.password = strdup(PASSWORD);
+	opts.qos = QOS1;
 
 	Network n;
 	MQTTClient c;
@@ -217,8 +238,11 @@ int main(int argc, char** argv)
 	signal(SIGTERM, cfinish);
 
 	NetworkInit(&n);
+	printf("step 1\n");
 	NetworkConnect(&n, opts.host, opts.port);
+	printf("step 2\n");
 	MQTTClientInit(&c, &n, 1000, buf, 100, readbuf, 100);
+	printf("step 3\n");
  
 	MQTTPacket_connectData data = MQTTPacket_connectData_initializer;       
 	data.willFlag = 0;
@@ -234,9 +258,9 @@ int main(int argc, char** argv)
 	rc = MQTTConnect(&c, &data);
 	printf("Connected %d\n", rc);
     
-    printf("Subscribing to %s\n", topic);
-	rc = MQTTSubscribe(&c, topic, opts.qos, messageArrived);
-	printf("Subscribed %d\n", rc);
+//  printf("Subscribing to %s\n", topic);	
+//	rc = MQTTSubscribe(&c, topic, opts.qos, messageArrived);
+//	printf("Subscribed %d\n", rc);
 
 	while (!toStop)
 	{
