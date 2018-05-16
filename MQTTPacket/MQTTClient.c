@@ -51,7 +51,7 @@ static int sendPacket(MQTTClient* c, int length, Timer* timer)
     }
     else
         rc = FAILURE;
-	printf("leave %s\n", __func__);
+	printf("leave %s rc=%d\n", __func__, rc);
     return rc;
 }
 
@@ -118,6 +118,9 @@ static int readPacket(MQTTClient* c, Timer* timer)
 
     /* 1. read the header byte.  This has the packet type in it */
     int rc = c->ipstack->mqttread(c->ipstack, c->readbuf, 1, TimerLeftMS(timer));
+	if(rc < 0){
+		printf("socket maybe error\n");
+	}
     if (rc != 1)
         goto exit;
 

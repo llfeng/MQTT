@@ -50,6 +50,7 @@
 #include <signal.h>
 
 #include <sys/time.h>
+#include <pthread.h>
 
 
 volatile int toStop = 0;
@@ -193,14 +194,37 @@ void messageArrived(MessageData* md)
 }
 
 
+void *pub_thread(void *arg){
+	MQTTClient *c = (MQTTClient *)arg;
+	MQTTMessage* message = (MQTTMessage* )malloc(sizeof(MQTTMessage));
+	while(1){
+		sleep(1);
+		printf("publish----\n");
+		memset(message, 0, sizeof(MQTTMessage));
+		message->qos = QOS0;
+		message->retained = 0;
+		message->dup = 0;
+		message->id = 0;
+		char time_str[128] = {0};
+		sprintf(time_str, "{\"time\":\"%ld\"}", time(NULL));
+		message->payload = time_str;
+		message->payloadlen = strlen(time_str);
+
+		MQTTPublish(c, "test_topic", message);
+	}
+	return NULL;
+}
+
+
 #define MQTT_HOST 	"183.230.40.39"
 #define MQTT_PORT	6002
-#define DEVICE_ID	"29494460"
+#define DEVICE_ID	"29563772"
 //#define DEVICE_ID	"2956377"
 #define PRODUCT_ID		"129356"
 //#define PASSWORD	"{\"mqtt\":\"mqtt-1234\"}"
+//#define PASSWORD	"ZxjP4ye8xSmewXnLELl2hR1aubw="
 #define PASSWORD	"ZxjP4ye8xSmewXnLELl2hR1aubw="
-//#define PASSWORD	"asdfgh"
+
 
 
 
@@ -229,7 +253,7 @@ int main(int argc, char** argv)
 	opts.clientid = strdup(DEVICE_ID);
 	opts.username = strdup(PRODUCT_ID);
 	opts.password = strdup(PASSWORD);
-	opts.qos = QOS1;
+	opts.qos = QOS0;
 
 	Network n;
 	MQTTClient c;
@@ -246,7 +270,7 @@ int main(int argc, char** argv)
  
 	MQTTPacket_connectData data = MQTTPacket_connectData_initializer;       
 	data.willFlag = 0;
-	data.MQTTVersion = 3;
+	data.MQTTVersion = 4;
 	data.clientID.cstring = opts.clientid;
 	data.username.cstring = opts.username;
 	data.password.cstring = opts.password;
@@ -261,6 +285,12 @@ int main(int argc, char** argv)
 //  printf("Subscribing to %s\n", topic);	
 //	rc = MQTTSubscribe(&c, topic, opts.qos, messageArrived);
 //	printf("Subscribed %d\n", rc);
+
+	pthread_t ntid;
+	int err = pthread_create(&ntid, NULL, pub_thread, (void *)&c);
+	if(err){
+		printf("pthread create error\n");
+	}
 
 	while (!toStop)
 	{

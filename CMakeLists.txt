@@ -15,7 +15,7 @@ add_subdirectory(MQTTPacket)
 
 add_executable(MQTT ${DIR_SRCS})
 
-target_link_libraries(MQTT paho-embed-mqtt )
+target_link_libraries(MQTT paho-embed-mqtt -lpthread)
 
 #target_link_libraries(MQTTPacket MQTTClient)
 
