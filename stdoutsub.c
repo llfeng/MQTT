@@ -206,9 +206,13 @@ void *pub_thread(void *arg){
 		message->dup = 0;
 		message->id = 0;
 		char time_str[128] = {0};
-		sprintf(time_str, "{\"time\":\"%ld\"}", time(NULL));
+		time_str[0] = 1;
+		time_str[1] = 0;
+		time_str[2] = strlen(&time_str[3]);
+		sprintf(&time_str[3], "{\"datastreams\":[{\"id\":\"test_topic\",\"datapoints\":[{\"value\":30.2}]}]}");
+//		sprintf(time_str, "{\"time\":\"%ld\"}", time(NULL));
 		message->payload = time_str;
-		message->payloadlen = strlen(time_str);
+		message->payloadlen = time_str[2]+3;
 
 		MQTTPublish(c, "test_topic", message);
 	}
@@ -218,7 +222,7 @@ void *pub_thread(void *arg){
 
 #define MQTT_HOST 	"183.230.40.39"
 #define MQTT_PORT	6002
-#define DEVICE_ID	"29563772"
+#define DEVICE_ID	"29563782"
 //#define DEVICE_ID	"2956377"
 #define PRODUCT_ID		"129356"
 //#define PASSWORD	"{\"mqtt\":\"mqtt-1234\"}"
